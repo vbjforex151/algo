@@ -1,240 +1,846 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Algo Trading System</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AlgoForge — Your Strategy. Our Execution.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08090d;
+      --bg2: #0e1018;
+      --bg3: #13151f;
+      --border: rgba(255,255,255,0.07);
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --gold-dim: rgba(201,168,76,0.15);
+      --text: #e8e6df;
+      --text-muted: #7a7a8a;
+      --text-dim: #4a4a5a;
+      --green: #2ecc8a;
+      --red: #e05555;
+      --accent: #4f8ef7;
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+    html { scroll-behavior: smooth; }
 
-body {
-    font-family: 'Poppins', sans-serif;
-    background: #020617;
-    color: white;
-    overflow-x: hidden;
-}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
 
-/* BACKGROUND ANIMATION */
-.bg {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 20% 20%, #0ea5e9, transparent),
-                radial-gradient(circle at 80% 80%, #9333ea, transparent);
-    z-index: -1;
-    filter: blur(120px);
-}
+    /* Custom cursor */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.1s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(201,168,76,0.5);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.18s ease, width 0.2s, height 0.2s;
+    }
 
-/* NAVBAR */
-nav {
-    position: fixed;
-    width: 100%;
-    padding: 15px 40px;
-    display: flex;
-    justify-content: space-between;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(12px);
-}
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9997; opacity: 0.4;
+    }
 
-nav h2 {
-    color: #38bdf8;
-}
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 22px 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(8,9,13,0.95), transparent);
+      backdrop-filter: blur(2px);
+    }
+    .nav-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.5rem;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 36px; align-items: center; }
+    .nav-links a {
+      color: var(--text-muted); font-size: 0.82rem; font-weight: 400;
+      text-decoration: none; letter-spacing: 0.08em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta {
+      background: var(--gold); color: #08090d !important;
+      padding: 9px 22px; border-radius: 2px;
+      font-weight: 600 !important; font-size: 0.78rem !important;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--gold-light) !important; color: #08090d !important; }
 
-nav a {
-    color: white;
-    margin-left: 20px;
-    text-decoration: none;
-}
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 140px 60px 80px;
+      position: relative; overflow: hidden;
+    }
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 100%);
+    }
+    .hero-glow {
+      position: absolute; top: -20%; right: -10%;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-glow-2 {
+      position: absolute; bottom: -10%; left: -5%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(79,142,247,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem; color: var(--gold);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 28px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero-tag::before {
+      content: ''; width: 40px; height: 1px; background: var(--gold); display: block;
+    }
+    .hero h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      max-width: 750px;
+      margin-bottom: 28px;
+    }
+    .hero h1 em {
+      font-style: italic; color: var(--gold);
+    }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-muted);
+      max-width: 480px; line-height: 1.7;
+      margin-bottom: 52px; font-weight: 300;
+    }
+    .hero-btns { display: flex; gap: 16px; align-items: center; }
+    .btn-primary {
+      background: var(--gold); color: #08090d;
+      padding: 14px 32px; border: none; border-radius: 2px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.9rem;
+      letter-spacing: 0.04em; cursor: none;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--text-muted);
+      padding: 14px 32px; border: 1px solid var(--border); border-radius: 2px;
+      font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.9rem;
+      letter-spacing: 0.04em; cursor: none;
+      transition: border-color 0.2s, color 0.2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
 
-/* HERO */
-.hero {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-}
+    /* Ticker bar */
+    .ticker-wrap {
+      overflow: hidden; border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0; background: var(--bg2);
+    }
+    .ticker-track {
+      display: flex; gap: 60px; animation: ticker 28s linear infinite;
+      white-space: nowrap; width: max-content;
+    }
+    .ticker-track:hover { animation-play-state: paused; }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .tick-item {
+      font-family: 'Space Mono', monospace; font-size: 0.75rem;
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .tick-name { color: var(--text-muted); }
+    .tick-val { color: var(--text); }
+    .tick-up { color: var(--green); }
+    .tick-down { color: var(--red); }
 
-.hero h1 {
-    font-size: 60px;
-    background: linear-gradient(90deg, #38bdf8, #a78bfa);
-    -webkit-background-clip: text;
-    color: transparent;
-}
+    /* Section base */
+    section { padding: 120px 60px; }
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem; color: var(--gold);
+      letter-spacing: 0.25em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.1; letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .section-sub {
+      color: var(--text-muted); font-size: 1rem; line-height: 1.75;
+      max-width: 520px; font-weight: 300;
+    }
 
-.hero p {
-    margin-top: 20px;
-    color: #94a3b8;
-}
+    /* HOW IT WORKS */
+    .how { background: var(--bg2); }
+    .how-inner { max-width: 1100px; margin: 0 auto; }
+    .how-header { display: flex; gap: 80px; margin-bottom: 80px; align-items: flex-end; }
+    .how-header-left { flex: 1; }
+    .how-header-right { flex: 0 0 360px; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .step {
+      background: var(--bg3); padding: 44px 36px;
+      border: 1px solid var(--border);
+      position: relative; overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .step:hover { border-color: rgba(201,168,76,0.3); }
+    .step::before {
+      content: attr(data-num);
+      position: absolute; top: -10px; right: 20px;
+      font-family: 'Instrument Serif', serif; font-size: 6rem;
+      color: rgba(255,255,255,0.03); font-style: italic;
+      line-height: 1; pointer-events: none;
+    }
+    .step-icon {
+      width: 44px; height: 44px; background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 2px; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 28px; font-size: 1.3rem;
+    }
+    .step h3 {
+      font-family: 'Instrument Serif', serif; font-size: 1.35rem;
+      margin-bottom: 14px; letter-spacing: -0.01em;
+    }
+    .step p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; }
 
-/* BUTTON */
-.btn {
-    margin-top: 30px;
-    padding: 14px 35px;
-    border-radius: 30px;
-    background: linear-gradient(90deg, #38bdf8, #a78bfa);
-    color: black;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s;
-}
+    /* ALGO TYPES */
+    .algo-types { background: var(--bg); }
+    .algo-inner { max-width: 1100px; margin: 0 auto; }
+    .algo-header { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-bottom: 64px; align-items: center; }
+    .algo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+    .algo-card {
+      background: var(--bg2); padding: 36px;
+      border: 1px solid var(--border);
+      transition: border-color 0.3s, background 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .algo-card:hover { border-color: rgba(201,168,76,0.25); background: var(--bg3); }
+    .algo-card-num {
+      font-family: 'Space Mono', monospace; font-size: 0.68rem;
+      color: var(--gold); letter-spacing: 0.15em;
+      margin-bottom: 20px;
+    }
+    .algo-card h3 {
+      font-family: 'Instrument Serif', serif; font-size: 1.25rem;
+      margin-bottom: 10px;
+    }
+    .algo-card p { color: var(--text-muted); font-size: 0.87rem; line-height: 1.65; }
+    .algo-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px;
+    }
+    .tag {
+      font-family: 'Space Mono', monospace; font-size: 0.62rem;
+      color: var(--text-dim); border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: 1px; letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-.btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px #38bdf8;
-}
+    /* PRICING */
+    .pricing { background: var(--bg2); }
+    .pricing-inner { max-width: 1100px; margin: 0 auto; }
+    .pricing-header { text-align: center; margin-bottom: 64px; }
+    .pricing-header .section-sub { margin: 0 auto; }
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 2px; max-width: 860px; margin: 0 auto; }
+    .price-card {
+      background: var(--bg3); padding: 52px 44px;
+      border: 1px solid var(--border); position: relative;
+    }
+    .price-card.featured {
+      background: linear-gradient(135deg, #13151f 0%, #1a1c28 100%);
+      border-color: rgba(201,168,76,0.35);
+    }
+    .price-badge {
+      position: absolute; top: -1px; left: 44px;
+      background: var(--gold); color: #08090d;
+      font-family: 'Space Mono', monospace; font-size: 0.62rem;
+      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 5px 14px;
+    }
+    .price-label { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px; }
+    .price-name { font-family: 'Instrument Serif', serif; font-size: 1.6rem; margin-bottom: 28px; }
+    .price-amount {
+      display: flex; align-items: flex-end; gap: 6px;
+      margin-bottom: 8px;
+    }
+    .price-currency { font-size: 1.2rem; color: var(--gold); line-height: 1.8; }
+    .price-num { font-family: 'Instrument Serif', serif; font-size: 3.8rem; line-height: 1; color: var(--text); }
+    .price-period { color: var(--text-dim); font-size: 0.85rem; line-height: 2.2; }
+    .price-note { color: var(--text-muted); font-size: 0.82rem; margin-bottom: 36px; }
+    .price-divider { height: 1px; background: var(--border); margin: 32px 0; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+    .price-features li {
+      display: flex; gap: 12px; align-items: flex-start;
+      font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;
+    }
+    .price-features li::before {
+      content: '✓'; color: var(--gold); font-size: 0.8rem;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .price-total {
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.15);
+      padding: 14px 18px; border-radius: 2px; margin-bottom: 32px;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    .price-total strong { color: var(--gold); }
+    .btn-full { width: 100%; text-align: center; padding: 15px; }
 
-/* SECTION */
-.section {
-    padding: 100px 20px;
-    text-align: center;
-}
+    /* WHY US */
+    .why { background: var(--bg); }
+    .why-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center; }
+    .why-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .stat-card {
+      background: var(--bg2); padding: 36px;
+      border: 1px solid var(--border);
+    }
+    .stat-num {
+      font-family: 'Instrument Serif', serif; font-size: 3rem;
+      color: var(--gold); line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-label { color: var(--text-muted); font-size: 0.85rem; }
+    .why-points { display: flex; flex-direction: column; gap: 28px; margin-top: 40px; }
+    .why-point { display: flex; gap: 18px; }
+    .why-icon {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+    }
+    .why-point-text h4 { font-size: 0.95rem; font-weight: 500; margin-bottom: 6px; }
+    .why-point-text p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
 
-/* CARDS */
-.features {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
+    /* TESTIMONIALS */
+    .testimonials { background: var(--bg2); }
+    .testi-inner { max-width: 1100px; margin: 0 auto; }
+    .testi-header { text-align: center; margin-bottom: 64px; }
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+    .testi-card {
+      background: var(--bg3); padding: 40px 32px;
+      border: 1px solid var(--border);
+    }
+    .testi-quote {
+      font-family: 'Instrument Serif', serif; font-style: italic;
+      font-size: 1.08rem; line-height: 1.65;
+      color: var(--text); margin-bottom: 28px;
+    }
+    .testi-author { display: flex; align-items: center; gap: 14px; }
+    .testi-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Instrument Serif', serif; font-size: 1rem; color: var(--gold);
+    }
+    .testi-name { font-size: 0.88rem; font-weight: 500; }
+    .testi-role { font-size: 0.78rem; color: var(--text-muted); }
+    .stars { color: var(--gold); font-size: 0.8rem; margin-bottom: 20px; letter-spacing: 2px; }
 
-.card {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(12px);
-    margin: 15px;
-    padding: 30px;
-    width: 280px;
-    border-radius: 15px;
-    transition: 0.4s;
-}
+    /* FAQ */
+    .faq { background: var(--bg); }
+    .faq-inner { max-width: 820px; margin: 0 auto; }
+    .faq-header { text-align: center; margin-bottom: 64px; }
+    .faq-list { display: flex; flex-direction: column; gap: 2px; }
+    .faq-item { background: var(--bg2); border: 1px solid var(--border); }
+    .faq-q {
+      padding: 24px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: none; font-weight: 400; font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+    .faq-q:hover { color: var(--gold); }
+    .faq-icon {
+      color: var(--gold); font-size: 1.2rem; font-weight: 300;
+      transition: transform 0.25s; flex-shrink: 0; margin-left: 20px;
+    }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.25s;
+      padding: 0 28px;
+      color: var(--text-muted); font-size: 0.88rem; line-height: 1.75;
+    }
+    .faq-item.open .faq-a { max-height: 300px; padding: 0 28px 24px; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
 
-.card:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 0 25px rgba(167,139,250,0.5);
-}
+    /* CTA BAND */
+    .cta-band {
+      background: linear-gradient(135deg, #13151f, #0e1018);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 100px 60px; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-band::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-band h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(2rem, 5vw, 4rem);
+      letter-spacing: -0.03em; margin-bottom: 16px;
+    }
+    .cta-band h2 em { font-style: italic; color: var(--gold); }
+    .cta-band p { color: var(--text-muted); margin-bottom: 44px; font-size: 1rem; }
+    .cta-contact {
+      display: flex; justify-content: center; gap: 16px;
+      flex-wrap: wrap; margin-top: 40px;
+    }
+    .contact-item {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--text-muted); font-size: 0.85rem;
+    }
+    .contact-item span:first-child { color: var(--gold); }
 
-/* STATS */
-.stats {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-}
+    /* FOOTER */
+    footer {
+      background: var(--bg); padding: 48px 60px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-logo {
+      font-family: 'Instrument Serif', serif; font-size: 1.2rem;
+    }
+    .footer-logo span { color: var(--gold); }
+    .footer-copy { color: var(--text-dim); font-size: 0.8rem; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: var(--text-dim); font-size: 0.8rem; text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--gold); }
 
-.stat {
-    margin: 20px;
-    font-size: 28px;
-    color: #38bdf8;
-}
+    /* SCROLL ANIMATIONS */
+    .fade-up { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
 
-/* PERFORMANCE */
-.performance img {
-    width: 90%;
-    max-width: 800px;
-    border-radius: 12px;
-}
-
-/* FOOTER */
-.footer {
-    padding: 30px;
-    text-align: center;
-    color: #64748b;
-}
-
-/* SCROLL ANIMATION */
-.hidden {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: 1s;
-}
-
-.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-</style>
-
+    /* MOBILE */
+    @media (max-width: 900px) {
+      nav { padding: 18px 24px; }
+      .nav-links { display: none; }
+      .hero { padding: 120px 24px 60px; }
+      section { padding: 80px 24px; }
+      .how-header { flex-direction: column; gap: 32px; margin-bottom: 40px; }
+      .how-header-right { flex: auto; }
+      .steps { grid-template-columns: 1fr; }
+      .algo-header { grid-template-columns: 1fr; gap: 32px; }
+      .algo-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 480px; }
+      .why-inner { grid-template-columns: 1fr; gap: 60px; }
+      .testi-grid { grid-template-columns: 1fr; }
+      .cta-band { padding: 80px 24px; }
+      footer { flex-direction: column; gap: 24px; text-align: center; }
+      body { cursor: auto; }
+      .cursor, .cursor-ring { display: none; }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="bg"></div>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
 
-<!-- NAV -->
-<nav>
-    <h2>AlgoPro</h2>
-    <div>
-        <a href="#features">Features</a>
-        <a href="#stats">Stats</a>
-        <a href="#performance">Performance</a>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">Algo<span>Forge</span></div>
+    <div class="nav-links">
+      <a href="#how">How It Works</a>
+      <a href="#algo">Strategies</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact" class="nav-cta">Get Started</a>
     </div>
-</nav>
+  </nav>
 
-<!-- HERO -->
-<div class="hero">
-    <div>
-        <h1>Next Gen Algo Trading</h1>
-        <p>Automated Precision. Institutional Logic.</p>
-        <a href="#features" class="btn">Explore System</a>
+  <!-- HERO -->
+  <section class="hero" id="home">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-tag">Custom Algorithmic Trading</div>
+    <h1>Your Strategy.<br><em>Our Execution.</em></h1>
+    <p class="hero-sub">We build precision trading algorithms tailored to your exact criteria — your risk profile, your market view, your edge. Deployed and managed for you.</p>
+    <div class="hero-btns">
+      <a href="#pricing" class="btn-primary">View Pricing</a>
+      <a href="#how" class="btn-ghost">How It Works</a>
     </div>
-</div>
+  </section>
 
-<!-- FEATURES -->
-<div id="features" class="section hidden">
-    <h2>⚙️ Features</h2>
-    <div class="features">
-        <div class="card">
-            <h3>AI Logic</h3>
-            <p>Smart decision engine based on market structure.</p>
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <div class="tick-item"><span class="tick-name">NIFTY 50</span><span class="tick-val">22,147.90</span><span class="tick-up">+0.42%</span></div>
+      <div class="tick-item"><span class="tick-name">BANKNIFTY</span><span class="tick-val">47,892.15</span><span class="tick-down">−0.18%</span></div>
+      <div class="tick-item"><span class="tick-name">RELIANCE</span><span class="tick-val">2,941.60</span><span class="tick-up">+1.12%</span></div>
+      <div class="tick-item"><span class="tick-name">TCS</span><span class="tick-val">3,871.25</span><span class="tick-up">+0.65%</span></div>
+      <div class="tick-item"><span class="tick-name">HDFC BANK</span><span class="tick-val">1,612.40</span><span class="tick-down">−0.33%</span></div>
+      <div class="tick-item"><span class="tick-name">INFY</span><span class="tick-val">1,487.80</span><span class="tick-up">+0.89%</span></div>
+      <div class="tick-item"><span class="tick-name">SENSEX</span><span class="tick-val">73,158.24</span><span class="tick-up">+0.31%</span></div>
+      <div class="tick-item"><span class="tick-name">MIDCAP</span><span class="tick-val">41,204.50</span><span class="tick-up">+0.55%</span></div>
+      <!-- Duplicate for seamless loop -->
+      <div class="tick-item"><span class="tick-name">NIFTY 50</span><span class="tick-val">22,147.90</span><span class="tick-up">+0.42%</span></div>
+      <div class="tick-item"><span class="tick-name">BANKNIFTY</span><span class="tick-val">47,892.15</span><span class="tick-down">−0.18%</span></div>
+      <div class="tick-item"><span class="tick-name">RELIANCE</span><span class="tick-val">2,941.60</span><span class="tick-up">+1.12%</span></div>
+      <div class="tick-item"><span class="tick-name">TCS</span><span class="tick-val">3,871.25</span><span class="tick-up">+0.65%</span></div>
+      <div class="tick-item"><span class="tick-name">HDFC BANK</span><span class="tick-val">1,612.40</span><span class="tick-down">−0.33%</span></div>
+      <div class="tick-item"><span class="tick-name">INFY</span><span class="tick-val">1,487.80</span><span class="tick-up">+0.89%</span></div>
+      <div class="tick-item"><span class="tick-name">SENSEX</span><span class="tick-val">73,158.24</span><span class="tick-up">+0.31%</span></div>
+      <div class="tick-item"><span class="tick-name">MIDCAP</span><span class="tick-val">41,204.50</span><span class="tick-up">+0.55%</span></div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="how-inner">
+      <div class="how-header fade-up">
+        <div class="how-header-left">
+          <div class="section-label">Process</div>
+          <h2 class="section-title">From idea to<br>live deployment</h2>
         </div>
-        <div class="card">
-            <h3>Auto Execution</h3>
-            <p>Fully automated MT5 trading.</p>
+        <div class="how-header-right">
+          <p class="section-sub">We handle the full engineering stack — strategy logic, backtesting, broker integration, and live monitoring — so you focus on what you know best: the market.</p>
         </div>
-        <div class="card">
-            <h3>Risk Engine</h3>
-            <p>Advanced capital protection algorithms.</p>
+      </div>
+      <div class="steps">
+        <div class="step fade-up" data-num="1">
+          <div class="step-icon">💬</div>
+          <h3>Discovery Call</h3>
+          <p>Share your trading idea, entry/exit criteria, instruments, risk limits, and timeframes. We listen and document every detail.</p>
         </div>
+        <div class="step fade-up" data-num="2" style="transition-delay:0.1s">
+          <div class="step-icon">⚙️</div>
+          <h3>Build & Backtest</h3>
+          <p>Our quant team codes your algorithm, runs historical backtests, and shares a detailed performance report for your approval.</p>
+        </div>
+        <div class="step fade-up" data-num="3" style="transition-delay:0.2s">
+          <div class="step-icon">🚀</div>
+          <h3>Deploy & Monitor</h3>
+          <p>Once approved, your algo goes live on your broker account. We monitor execution 24/5 and alert you to any anomalies.</p>
+        </div>
+      </div>
     </div>
-</div>
+  </section>
 
-<!-- STATS -->
-<div id="stats" class="section hidden">
-    <h2>📊 System Stats</h2>
-    <div class="stats">
-        <div class="stat">Win Rate: 78%</div>
-        <div class="stat">RR Ratio: 1:2</div>
-        <div class="stat">Drawdown: 8%</div>
+  <!-- ALGO TYPES -->
+  <section class="algo-types" id="algo">
+    <div class="algo-inner">
+      <div class="algo-header fade-up">
+        <div>
+          <div class="section-label">Strategies We Build</div>
+          <h2 class="section-title">Any edge,<br>engineered precisely</h2>
+        </div>
+        <div>
+          <p class="section-sub">No template strategies. Every algorithm is built ground-up to your exact specifications — indicators, logic, risk rules, all of it.</p>
+        </div>
+      </div>
+      <div class="algo-grid">
+        <div class="algo-card fade-up">
+          <div class="algo-card-num">01</div>
+          <h3>Options Strategies</h3>
+          <p>Iron condors, straddles, ratio spreads, delta-neutral setups — built with real-time Greeks management and defined risk parameters.</p>
+          <div class="algo-tags">
+            <span class="tag">Nifty</span><span class="tag">BankNifty</span><span class="tag">FinNifty</span><span class="tag">Weekly Expiry</span>
+          </div>
+        </div>
+        <div class="algo-card fade-up" style="transition-delay:0.1s">
+          <div class="algo-card-num">02</div>
+          <h3>Intraday Momentum</h3>
+          <p>Breakout, mean-reversion, VWAP-based, or opening range systems. Works across equities, futures, and indices.</p>
+          <div class="algo-tags">
+            <span class="tag">Futures</span><span class="tag">Equity</span><span class="tag">1min–15min</span>
+          </div>
+        </div>
+        <div class="algo-card fade-up" style="transition-delay:0.15s">
+          <div class="algo-card-num">03</div>
+          <h3>Positional Swing</h3>
+          <p>Multi-day holding strategies based on your technical or fundamental criteria, with trailing stops and partial exit logic.</p>
+          <div class="algo-tags">
+            <span class="tag">Swing</span><span class="tag">Daily</span><span class="tag">Multi-leg</span>
+          </div>
+        </div>
+        <div class="algo-card fade-up" style="transition-delay:0.2s">
+          <div class="algo-card-num">04</div>
+          <h3>Custom Indicators</h3>
+          <p>Have a unique indicator or proprietary signal? We code it precisely, test it rigorously, and integrate it into a fully automated system.</p>
+          <div class="algo-tags">
+            <span class="tag">Custom Logic</span><span class="tag">Any Timeframe</span><span class="tag">Any Asset</span>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </section>
 
-<!-- PERFORMANCE -->
-<div id="performance" class="section performance hidden">
-    <h2>📉 Performance</h2>
-    <img src="https://via.placeholder.com/800x400">
-</div>
+  <!-- PRICING -->
+  <section class="pricing" id="pricing">
+    <div class="pricing-inner">
+      <div class="pricing-header fade-up">
+        <div class="section-label">Pricing</div>
+        <h2 class="section-title">Simple, transparent fees</h2>
+        <p class="section-sub">No hidden charges. No profit sharing. Pay once to build, then a flat monthly fee to keep it running flawlessly.</p>
+      </div>
+      <div class="pricing-grid">
+        <div class="price-card fade-up">
+          <div class="price-label">One Time</div>
+          <div class="price-name">Algo Development</div>
+          <div class="price-amount">
+            <span class="price-currency">₹</span>
+            <span class="price-num">5,000</span>
+          </div>
+          <p class="price-note">Paid once. Yours forever.</p>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>Discovery & requirements session</li>
+            <li>Full algorithm coding to your criteria</li>
+            <li>Backtesting with detailed report</li>
+            <li>Broker API integration (Zerodha / AngelOne / Upstox)</li>
+            <li>Paper trading validation</li>
+            <li>One round of revisions included</li>
+          </ul>
+          <a href="#contact" class="btn-primary btn-full">Build My Algo</a>
+        </div>
+        <div class="price-card featured fade-up" style="transition-delay:0.1s">
+          <div class="price-badge">Most Popular</div>
+          <div class="price-label">Monthly</div>
+          <div class="price-name">Live Execution & Monitoring</div>
+          <div class="price-amount">
+            <span class="price-currency">₹</span>
+            <span class="price-num">1,000</span>
+            <span class="price-period">/mo</span>
+          </div>
+          <p class="price-note">After your algo is live.</p>
+          <div class="price-divider"></div>
+          <ul class="price-features">
+            <li>24/5 live execution monitoring</li>
+            <li>Instant alerts on anomalies or errors</li>
+            <li>Server hosting & uptime management</li>
+            <li>Monthly performance summary</li>
+            <li>Minor logic tweaks included</li>
+            <li>Priority support via WhatsApp</li>
+          </ul>
+          <div class="price-total">
+            Total first month: <strong>₹6,000</strong> &nbsp;·&nbsp; From month 2: <strong>₹1,000/mo</strong>
+          </div>
+          <a href="#contact" class="btn-primary btn-full">Get Started Today</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- FOOTER -->
-<div class="footer">
-    © 2026 AlgoPro | Built for Serious Traders
-</div>
+  <!-- WHY US -->
+  <section class="why">
+    <div class="why-inner">
+      <div class="fade-up">
+        <div class="section-label">Why AlgoForge</div>
+        <h2 class="section-title">Built for serious traders</h2>
+        <p class="section-sub" style="margin-bottom:0">We're not a template factory. Every algo is handcrafted, every line of code reviewed, and every deployment tested before it touches real capital.</p>
+        <div class="why-points">
+          <div class="why-point">
+            <div class="why-icon">🎯</div>
+            <div class="why-point-text">
+              <h4>Your Criteria, Not Ours</h4>
+              <p>You define the rules. We code them exactly as specified — no unsolicited "improvements."</p>
+            </div>
+          </div>
+          <div class="why-point">
+            <div class="why-icon">🔒</div>
+            <div class="why-point-text">
+              <h4>Your Account, Your Control</h4>
+              <p>The algo runs on your broker account. We never have withdrawal access. Your capital is always yours.</p>
+            </div>
+          </div>
+          <div class="why-point">
+            <div class="why-icon">📊</div>
+            <div class="why-point-text">
+              <h4>Transparent Reporting</h4>
+              <p>Monthly P&L reports, trade logs, and execution analysis. No black boxes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fade-up" style="transition-delay:0.1s">
+        <div class="why-stats">
+          <div class="stat-card">
+            <div class="stat-num">50+</div>
+            <div class="stat-label">Algos Deployed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">98%</div>
+            <div class="stat-label">Uptime Guaranteed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">7d</div>
+            <div class="stat-label">Average Build Time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">₹0</div>
+            <div class="stat-label">Profit Sharing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<script>
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-        if(entry.isIntersecting){
-            entry.target.classList.add('show');
-        }
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="testi-inner">
+      <div class="testi-header fade-up">
+        <div class="section-label">Client Stories</div>
+        <h2 class="section-title">Traders who made the switch</h2>
+      </div>
+      <div class="testi-grid">
+        <div class="testi-card fade-up">
+          <div class="stars">★★★★★</div>
+          <div class="testi-quote">"I had an options strategy running in my head for 2 years. AlgoForge turned it into a live system in 6 days. Now it runs on its own every morning."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">R</div>
+            <div><div class="testi-name">Rahul Mehta</div><div class="testi-role">Options Trader, Mumbai</div></div>
+          </div>
+        </div>
+        <div class="testi-card fade-up" style="transition-delay:0.1s">
+          <div class="stars">★★★★★</div>
+          <div class="testi-quote">"The ₹1,000/month monitoring is worth every rupee. I was manually watching screens 7 hours a day. Now I don't have to babysit my own strategy."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">P</div>
+            <div><div class="testi-name">Priya Sharma</div><div class="testi-role">Intraday Equity Trader, Pune</div></div>
+          </div>
+        </div>
+        <div class="testi-card fade-up" style="transition-delay:0.2s">
+          <div class="stars">★★★★★</div>
+          <div class="testi-quote">"They didn't just code what I asked — they pointed out edge cases in my logic I hadn't thought of. Incredibly professional team."</div>
+          <div class="testi-author">
+            <div class="testi-avatar">A</div>
+            <div><div class="testi-name">Arjun Nair</div><div class="testi-role">Swing Trader, Bangalore</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="faq-inner">
+      <div class="faq-header fade-up">
+        <div class="section-label">FAQ</div>
+        <h2 class="section-title">Common questions</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item fade-up">
+          <div class="faq-q">Which brokers do you support? <span class="faq-icon">+</span></div>
+          <div class="faq-a">We currently support Zerodha (Kite API), AngelOne (Smart API), Upstox, and Fyers. If you use a different broker, reach out and we'll check compatibility.</div>
+        </div>
+        <div class="faq-item fade-up">
+          <div class="faq-q">Do I need any coding knowledge? <span class="faq-icon">+</span></div>
+          <div class="faq-a">Zero. You just need to explain your strategy clearly — in plain English, a PDF, or a whiteboard sketch. We handle all the technical implementation.</div>
+        </div>
+        <div class="faq-item fade-up">
+          <div class="faq-q">How long does it take to build my algo? <span class="faq-icon">+</span></div>
+          <div class="faq-a">Typical turnaround is 5–10 business days depending on strategy complexity. You'll receive a backtest report before we go live, and you have full approval rights.</div>
+        </div>
+        <div class="faq-item fade-up">
+          <div class="faq-q">Is my money safe? Do you have access to my funds? <span class="faq-icon">+</span></div>
+          <div class="faq-a">Absolutely not. The algorithm connects to your broker account via API keys that have order-placement permissions only — no withdrawal access. Your capital is always under your control.</div>
+        </div>
+        <div class="faq-item fade-up">
+          <div class="faq-q">Can I request changes to the algo after it's live? <span class="faq-icon">+</span></div>
+          <div class="faq-a">Minor logic tweaks (e.g. adjusting SL/target levels, changing position size) are included in the monthly fee. Major strategy overhauls may incur a small additional charge, discussed upfront.</div>
+        </div>
+        <div class="faq-item fade-up">
+          <div class="faq-q">What if I want to stop the monthly service? <span class="faq-icon">+</span></div>
+          <div class="faq-a">Cancel anytime with 7 days' notice. The algo code belongs to you — we'll hand it over so you can self-host if you wish.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <div class="cta-band" id="contact">
+    <h2>Ready to automate<br>your <em>edge?</em></h2>
+    <p>Talk to us today. Free consultation, no commitment.</p>
+    <a href="https://wa.me/919876543210?text=Hi%2C%20I%27m%20interested%20in%20a%20custom%20algo" class="btn-primary" style="font-size:1rem; padding:16px 40px;">
+      📲 WhatsApp Us Now
+    </a>
+    <div class="cta-contact">
+      <div class="contact-item"><span>✉</span><span>hello@algoforge.in</span></div>
+      <div class="contact-item"><span>📍</span><span>Jalgaon, Maharashtra</span></div>
+      <div class="contact-item"><span>🕐</span><span>Mon–Sat, 9am–7pm IST</span></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Algo<span>Forge</span></div>
+    <div class="footer-copy">© 2025 AlgoForge. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </footer>
+
+  <script>
+    // Custom cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animCursor() {
+      cursor.style.transform = `translate(${mx - 5}px, ${my - 5}px)`;
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.transform = `translate(${rx - 18}px, ${ry - 18}px)`;
+      requestAnimationFrame(animCursor);
+    }
+    animCursor();
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-q').forEach(q => {
+      q.addEventListener('click', () => {
+        const item = q.parentElement;
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+      });
     });
-});
 
-document.querySelectorAll('.hidden').forEach(el => observer.observe(el));
-</script>
-
+    // Scroll fade-up
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+  </script>
 </body>
 </html>
